@@ -70,7 +70,5 @@ python -m pytest -v
 
 **ReDoc Documentation:** https://client-server-course.onrender/redoc
 
-**API Documentation (Swagger UI):** https://YOUR-RENDER-URL/docs
 
-**ReDoc Documentation:** https://YOUR-RENDER-URL/redoc
 
