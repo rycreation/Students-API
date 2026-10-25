@@ -58,3 +58,19 @@ python -m pytest -v
 - Protected endpoints must validate authentication.
 - Admin-only operations must enforce authorization.
 - Production deployments should use HTTPS and secure configuration.
+
+
+## 🌐 Live Demo
+
+**Live Application:** ## 🌐 Live Demo
+
+**Live Application:**(https://client-server-course.onrender.com/)
+
+**API Documentation (Swagger UI):** https://client-server-course.onrender/docs
+
+**ReDoc Documentation:** https://client-server-course.onrender/redoc
+
+**API Documentation (Swagger UI):** https://YOUR-RENDER-URL/docs
+
+**ReDoc Documentation:** https://YOUR-RENDER-URL/redoc
+
