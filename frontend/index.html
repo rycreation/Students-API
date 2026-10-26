@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 0 16px;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        input {
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .form-input {
+            width: 100%;
+        }
+
+        .student {
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+
+        #message {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Management System</h1>
+
+    <section>
+        <h2>Login</h2>
+
+        <form id="login-form">
+            <input
+                class="form-input"
+                type="email"
+                id="login-email"
+                placeholder="Email"
+                required
+            >
+
+            <input
+                class="form-input"
+                type="password"
+                id="login-password"
+                placeholder="Password"
+                required
+            >
+
+            <button type="submit">Login</button>
+            <button type="button" id="logout-button">Logout</button>
+        </form>
+    </section>
+
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <section>
+        <h2>Add Student</h2>
+
+        <form id="create-form">
+            <input
+                class="form-input"
+                type="text"
+                id="student-name"
+                placeholder="Student name"
+                minlength="2"
+                maxlength="100"
+                required
+            >
+
+            <input
+                class="form-input"
+                type="email"
+                id="student-email"
+                placeholder="Student email"
+                maxlength="254"
+                required
+            >
+
+            <button type="submit">Add Student</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>All Students</h2>
+        <button type="button" id="refresh-button">
+            Refresh Students
+        </button>
+
+        <div id="student-list"></div>
+    </section>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        // Token is kept in memory for this learning demo.
+        let accessToken = null;
+
+        const message = document.getElementById("message");
+        const studentList = document.getElementById("student-list");
+
+        function showMessage(text) {
+            message.textContent = text;
+        }
+
+        async function apiRequest(path, options = {}) {
+            if (!accessToken) {
+                throw new Error("Please login first.");
+            }
+
+            const headers = new Headers(options.headers || {});
+            headers.set("Authorization", `Bearer ${accessToken}`);
+
+            if (options.body && !headers.has("Content-Type")) {
+                headers.set("Content-Type", "application/json");
+            }
+
+            const response = await fetch(`${API_URL}${path}`, {
+                ...options,
+                headers
+            });
+
+            const contentType = response.headers.get("content-type") || "";
+            const data = contentType.includes("application/json")
+                ? await response.json()
+                : null;
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail || `Request failed: ${response.status}`
+                );
+            }
+
+            return data;
+        }
+
+        // LOGIN
+        document.getElementById("login-form").addEventListener(
+            "submit",
+            async (event) => {
+                event.preventDefault();
+
+                const formData = new URLSearchParams();
+                formData.set(
+                    "username",
+                    document.getElementById("login-email").value
+                );
+                formData.set(
+                    "password",
+                    document.getElementById("login-password").value
+                );
+
+                try {
+                    const response = await fetch(
+                        `${API_URL}/auth/login`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded"
+                            },
+                            body: formData
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.detail || "Login failed.");
+                    }
+
+                    accessToken = data.access_token;
+                    showMessage("Login successful!");
+
+                    await loadStudents();
+                } catch (error) {
+                    showMessage(error.message);
+                }
+            }
+        );
+
+        // CREATE
+        document.getElementById("create-form").addEventListener(
+            "submit",
+            async (event) => {
+                event.preventDefault();
+
+                const student = {
+                    name: document.getElementById("student-name").value.trim(),
+                    email: document.getElementById("student-email").value.trim()
+                };
+
+                try {
+                    const data = await apiRequest("/students", {
+                        method: "POST",
+                        body: JSON.stringify(student)
+                    });
+
+                    showMessage(`Student created. ID: ${data.id}`);
+                    event.target.reset();
+                    await loadStudents();
+                } catch (error) {
+                    showMessage(error.message);
+                }
+            }
+        );
+
+        // READ
+        async function loadStudents() {
+            try {
+                const students = await apiRequest("/students");
+
+                studentList.replaceChildren();
+
+                for (const student of students) {
+                    const card = document.createElement("div");
+                    card.className = "student";
+
+                    const details = document.createElement("p");
+                    details.textContent =
+                        `ID: ${student.id} | ${student.name} | ${student.email}`;
+
+                    const editButton = document.createElement("button");
+                    editButton.textContent = "Edit";
+                    editButton.addEventListener("click", () => {
+                        editStudent(student);
+                    });
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.addEventListener("click", () => {
+                        deleteStudent(student.id);
+                    });
+
+                    card.append(details, editButton, deleteButton);
+                    studentList.appendChild(card);
+                }
+
+                if (students.length === 0) {
+                    studentList.textContent = "No students found.";
+                }
+            } catch (error) {
+                showMessage(error.message);
+            }
+        }
+
+        // UPDATE
+        async function editStudent(student) {
+            const name = prompt("Enter new name:", student.name);
+
+            if (name === null) return;
+
+            const email = prompt("Enter new email:", student.email);
+
+            if (email === null) return;
+
+            if (name.trim().length < 2 || !email.trim()) {
+                showMessage("Enter a valid name and email.");
+                return;
+            }
+
+            try {
+                await apiRequest(`/students/${student.id}`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        email: email.trim()
+                    })
+                });
+
+                showMessage("Student updated successfully.");
+                await loadStudents();
+            } catch (error) {
+                showMessage(error.message);
+            }
+        }
+
+        // DELETE — requires admin permission in our course API
+        async function deleteStudent(id) {
+            if (!confirm(`Delete student ${id}?`)) return;
+
+            try {
+                await apiRequest(`/students/${id}`, {
+                    method: "DELETE"
+                });
+
+                showMessage("Student deleted successfully.");
+                await loadStudents();
+            } catch (error) {
+                showMessage(error.message);
+            }
+        }
+
+        document.getElementById("refresh-button").addEventListener(
+            "click",
+            loadStudents
+        );
+
+        document.getElementById("logout-button").addEventListener(
+            "click",
+            () => {
+                accessToken = null;
+                studentList.replaceChildren();
+                showMessage("Logged out.");
+            }
+        );
+    </script>
+</body>
+</html>
