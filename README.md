@@ -67,6 +67,7 @@ python -m pytest -v
 **Live Application:**(https://client-server-course.onrender.com/)
 
 **API Documentation (Swagger UI):**(https://client-server-course.onrender.com/docs)
+
 **ReDoc Documentation:**(https://client-server-course.onrender.com/redoc)
 
 
