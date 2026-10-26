@@ -1,5 +1,5 @@
 
-# Student Management System
+# Student-API 
 
 A REST API built with FastAPI, SQLite, Pydantic, and JWT authentication.
 
@@ -64,11 +64,11 @@ python -m pytest -v
 
 **Live Application:** ## 🌐 Live Demo
 
-**Live Application:**(https://client-server-course.onrender.com/)
+**Live Application:**(https://students-api-8jic.onrender.com/)
 
-**API Documentation (Swagger UI):**(https://client-server-course.onrender.com/docs)
+**API Documentation (Swagger UI):**(https://students-api-8jic.onrender.com/docs)
 
-**ReDoc Documentation:**(https://client-server-course.onrender.com/redoc)
+**ReDoc Documentation:**(https://students-api-8jic.onrender.com/redoc)
 
 
 
