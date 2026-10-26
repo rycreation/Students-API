@@ -15,7 +15,7 @@ from fastapi import FastAPI
 
 
 app = FastAPI(
-    title="Student Management API",
+    title="Student API",
     description=(
         "A REST API for managing student records, "
         "with JWT authentication and role-based authorization."
