@@ -6,11 +6,12 @@ from app.auth import router as auth_router, get_current_user, require_admin
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI
 
-
+from pathlib import Path
 
 
 
@@ -72,9 +73,18 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/")
-def home():
-    return {"message": "Welcome to the Student Management API!"}
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=str(FRONTEND_DIR)),
+    name="static"
+)
+
+@app.get("/", include_in_schema=False)
+def serve_homepage():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 @app.get("/students",
          summary="List all students",
